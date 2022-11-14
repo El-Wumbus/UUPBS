@@ -1,0 +1,14 @@
+name = "uupbs-build-package"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+toml = "*"
+structopt = "*"
+directories = "4.0"
+serde = "1.0"
+serde_derive = "1.0"
+
+[[bin]]
+name = "ubuildpkg"
+path = "src/main.rs"
