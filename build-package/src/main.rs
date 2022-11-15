@@ -1,11 +1,13 @@
 // A package archive building program, reads from a toml file. This program should
 // be capable of installing programs, compiling source, installing some specified dependencies.
 
+use progress_bar::*;
 use std::path::PathBuf;
 use structopt::StructOpt;
 pub mod parse;
 fn main()
 {
+    init_progress_bar(1);
     let opt = Opt::from_args();
 
 

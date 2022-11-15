@@ -5,18 +5,18 @@ use serde::Serialize;
 
 pub fn parse_build_file(file:PathBuf, verbose:u8) -> Result<BuildConfiguration, String>
 {
-    init_progress_bar(1);
-    set_progress_bar_action("Reading build file", Color::Blue, Style::Bold);
-
+    set_progress_bar_action("Reading", Color::Blue, Style::Bold);
     let read:String = match read_to_string(file.clone())
     {
         Ok(x) => x,
-        Err(x) => print_progress_bar_info(
+        Err(x) => if verbose > 0 {
+            print_progress_bar_info(
             "Failed",
             format!("reading from file '{}'", file.display()),
             Color::Red,
             Style::Normal
         );
+    },
         return Err(format!("Error: Couldn't read from build file: {}", x)),
     };
     
@@ -74,27 +74,25 @@ pub struct BuildConfiguration
     pub homepage: Option<String>,
     pub license: Option<String>,
     pub forceinstall: Option<PathBuf>,
-    pub kind: Kind,
+    pub kind: Vec<Kind>,
 }
 
 #[derive(Serialize, Deserialize, PartialEq)]
 #[serde(tag = "kind", content = "source")]
 pub enum Kind {
-    pub Exe(Vec<Exe>),
-    pub Src(Vec<SourceKind>),
+    pub Exe{path: Location,
+        sha256sum: Option<String>,
+        md5sum: Option<String>,},
+    pub Src{
+        path: PathBuf
+    },
 }
 
-#[derive(debug, Deserialize, Serialize)]
-pub struct Exe {
-    pub path: PathBuf,
-    pub sha256sum: Option<String>,
-    pub md5sum: Option<String>,
-}
 
 #[derive(debug, Deserialize, Serialize)]
 pub struct SourceKind {
     /// A file or folder where the build system is (supported are meson, make, cargo, and, cmake)
-    pub location: LocationType,
+    pub location: Location
     pub builder: String,
 
     /// The file or folder the build system outputs the binaries to. 
@@ -102,9 +100,10 @@ pub struct SourceKind {
 }
 
 #[derive(Serialize, Deserialize, PartialEq)]
-#[serde(tag = "kind", content = "source")]
-pub enum LocationType
+#[serde(tag = "ref")]
+pub enum Location
 {
-    pub Git(String),
-    pub Path(pathbuf),
+    Git{location: String},
+    Http{location: String},
+    Path{location: PathBuf},
 }
